@@ -15,7 +15,7 @@ jobs:
        - name: checkout repository
          uses: actions/checkout@v4
       
-       - name: setup nodejs version - 18
+       - name: Setup nodejs version - 18
          uses: actions/setup-node@v3
          with:
            node-version: 18
