@@ -45,7 +45,7 @@ jobs:
     code-coverage:
        name: code coverage
        runs-on: ubuntu-latest
-       Steps:
+       steps:
        - name: checkout repository
          uses: action/checkout@v4
 
