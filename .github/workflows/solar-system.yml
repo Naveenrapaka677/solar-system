@@ -15,9 +15,11 @@ jobs:
        name: Unit testing
        strategy:
           matrix:
-              nodejs_verison: [19, 20]
-              os: ubuntu-latest
-              
+              nodejs_verison: [18, 19, 20]
+              os: [ubuntu-latest]
+              exclude:
+                  - nodejs_verison: [19, 20]
+                    os: ubuntu-latest
        runs-on: ${{ matrix.os }}
        steps:
        - name: checkout repository
