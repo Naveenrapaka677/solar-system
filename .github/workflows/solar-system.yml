@@ -82,49 +82,74 @@ jobs:
            retention-days: 5
 
     docker:
+      name: containerization
+      permissions:
+        packages: write
 
-        name: containerization
-        premissions:
-          packages: write
-        needs: [ unit-testing, code-coverage ]
-        runs-on: ubuntu-latest
-        steps:
-        - name: Checkout repository
-          uses: actions/checkout@v4
+      needs: [unit-testing, code-coverage]
+      runs-on: ubuntu-latest
 
-        - name: dockerhub login
-          uses: docker/login-action@v3
-          with:
-            username: ${{ vars.DOCKERHUB_USERNAME }}
-            password: ${{ secrets.DOCKERHUB_PASSWORD }}  
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-        - name: docker build for testing
-          uses: docker/build-push-action@v4
-          with:
-            context: .
-            push: false
-            tags: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
-        
-        - name: docker image test
-          run: |
-            docker image
-            docker run --name solar-system-app -d -p 3000:3000 -e MONGO_URI:$MONGO_URI -e MONGO_USERNAME=$MONGO_USERNAME -e MONGO_PASSWORD=$MONGO_PASSWORD \
-                ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
-            
-            export IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' solar-system-app)
-            echo $IP
-          
-            echo testing image URI using wget
-            wget -q -O - 127.0.0.1:3000/live | grep live
+    # Login to Docker Hub
+      - name: Docker Hub Login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-        - name: container registry push
-          uses: docker/build-push-action@v4
-          with:
-            context: .
-            push: true
-            tags: |
-             ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
-             ghcr.io/${{ github.repository_owner }}/solar-system:${{ github.sha }}
+    # Login to GitHub Container Registry
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-        
+    # Build image for testing
+      - name: Docker Build for Testing
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: false
+          load: true
+          tags: |
+            ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
+
+    # Test the image
+      - name: Docker Image Test
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          MONGO_USERNAME: ${{ secrets.MONGO_USERNAME }}
+          MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+        run: |
+          docker images
+
+          docker run --name solar-system-app -d \
+          -p 3000:3000 \
+          -e MONGO_URI=$MONGO_URI \
+          -e MONGO_USERNAME=$MONGO_USERNAME \
+          -e MONGO_PASSWORD=$MONGO_PASSWORD \
+          ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
+
+        export IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' solar-system-app)
+        echo "Container IP: $IP"
+
+        echo "Waiting for application to start..."
+        sleep 10
+
+        echo "Testing /live endpoint..."
+        wget -q -O - http://127.0.0.1:3000/live | grep live
+
+    # Push image to Docker Hub and GitHub Container Registry
+      - name: Push Docker Images
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
+            ghcr.io/naveenrapaka677/solar-system:${{ github.sha }}
             
