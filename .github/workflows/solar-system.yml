@@ -89,7 +89,7 @@ jobs:
         needs: [ unit-testing, code-coverage ]
         runs-on: ubuntu-latest
         steps:
-        - name: checkout repository
+        - name: Checkout repository
           uses: actions/checkout@v4
 
         - name: dockerhub login
