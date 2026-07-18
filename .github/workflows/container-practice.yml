@@ -3,7 +3,8 @@ name: Job Container Practice
 on:
   workflow_dispatch:
   push:
-    - feature/*
+    branches:
+       - feature/*
 
 jobs:
   test:
