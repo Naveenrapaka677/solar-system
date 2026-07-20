@@ -143,10 +143,32 @@ jobs:
       runs-on: self-hosted
 
       steps:
-        - uses: actions/checkout@v4
+        - name: Checkout Repository
+          uses: actions/checkout@v4
 
         - name: Verify Kubernetes
           run: |
             kubectl version
             kubectl config current-context
             kubectl get nodes
+
+        - name: Save NGINX Controller IP
+          shell: bash
+          run: |
+            echo "INGRESS_IP=$(kubectl -n ingress-nginx get svc ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" >> $GITHUB_ENV
+
+        - name: Replace Tokens
+          uses: cschleiden/replace-token@v1
+          with:
+            tokenPrefix: '_{_'
+            tokenSuffix: '_}_'
+            files: '["kubernetes/development/*.yaml"]'
+          env:
+            NAMESPACE: ${{ vars.NAMESPACE }}
+            REPLICAS: ${{ vars.REPLICAS }}
+            IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
+            INGRESS_IP: ${{ env.INGRESS_IP }}
+
+        - name: Check Files
+          run: |
+            cat kubernetes/development/*.yaml
