@@ -155,8 +155,8 @@ jobs:
         - name: Save NGINX Controller IP
           shell: bash
           run: |
-            echo "INGRESS_IP=$(kubectl -n ingress-nginx get svc ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" >> $GITHUB_ENV
-
+            $ip = kubectl -n ingress-nginx get svc ingress-nginx-controller -o jsonpath="{.status.loadBalancer.ingress[0].ip}"
+            "INGRESS_IP=$ip" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         - name: Replace Tokens
           uses: cschleiden/replace-tokens@v1
           with:
