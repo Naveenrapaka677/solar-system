@@ -81,7 +81,7 @@ jobs:
            path: coverage
            retention-days: 5
 
-    Docker:
+    docker:
 
       name: Containerization
       needs: [unit-testing, code-coverage]
@@ -139,25 +139,26 @@ jobs:
             ghcr.io/naveenrapaka677/solar-system:${{ github.sha }}
 
     dev-deploy:
-      needs: [unit-testing, code-coverage, Docker]
+      needs: [unit-testing, code-coverage, docker]
       runs-on: ubuntu-latest
+
       steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+        - name: Checkout Repository
+          uses: actions/checkout@v4
 
-      - name: Install kubectl CLI
-        uses: azure/setup-kubectl@v3
-        with:
-          version: 'v1.26.0'
+        - name: Install kubectl CLI
+          uses: azure/setup-kubectl@v3
+          with:
+            version: v1.26.0
 
-      - name: set kubeconfig
-        uses: azure/k8s-set-context@v4
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBECONFIG }}
-          
-      - name: Fetch Kubernetes cluster details
-        run: |
+        - name: Set kubeconfig
+          uses: azure/k8s-set-context@v4
+          with:
+            method: kubeconfig
+            kubeconfig: ${{ secrets.KUBECONFIG }}
+
+        - name: Fetch Kubernetes cluster details
+          run: |
           kubectl version --short
-          echo -------------------------------
+          echo "-------------------------------"
           kubectl get nodes
