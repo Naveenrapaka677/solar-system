@@ -153,7 +153,6 @@ jobs:
             kubectl get nodes
 
         - name: Save NGINX Controller IP
-          shell: bash
           run: |
             $ip = kubectl -n ingress-nginx get svc ingress-nginx-controller -o jsonpath="{.status.loadBalancer.ingress[0].ip}"
             "INGRESS_IP=$ip" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
