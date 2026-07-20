@@ -139,26 +139,14 @@ jobs:
               ghcr.io/naveenrapaka677/solar-system:${{ github.sha }}
 
     dev-deploy:
-      needs: [unit-testing, code-coverage, docker]
+      needs: docker
       runs-on: self-hosted
 
       steps:
-        - name: Checkout Repository
-          uses: actions/checkout@v4
+        - uses: actions/checkout@v4
 
-        - name: Install kubectl CLI
-          uses: azure/setup-kubectl@v3
-          with:
-            version: v1.26.0
-
-        - name: Set kubeconfig
-          uses: azure/k8s-set-context@v4
-          with:
-            method: kubeconfig
-            kubeconfig: ${{ secrets.KUBECONFIG }}
-
-        - name: Fetch Kubernetes cluster details
+        - name: Verify Kubernetes
           run: |
-            kubectl version --short
-            echo "-------------------------------"
+            kubectl version
+            kubectl config current-context
             kubectl get nodes
