@@ -165,12 +165,12 @@ jobs:
           env:
             NAMESPACE: ${{ vars.NAMESPACE }}
             REPLICAS: ${{ vars.REPLICAS }}
-            IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
+            IMAGE: K8S_IMAGE/${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
             INGRESS_IP: ${{ env.INGRESS_IP }}
 
         - name: Check Files
           run: |
-            cat kubernetes/development/*.yaml
+            get-content kubernetes/development/*.yaml
 
         - name: Create Namespace
           run: |
@@ -182,7 +182,6 @@ jobs:
             --from-literal=MONGO_URI=${{ env.MONGO_URI }} `
             --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }} `
             --from-literal=MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }} `
-            --save-config `
             --dry-run=client -o yaml | kubectl apply -f -
 
         - name: deploy to dev env
