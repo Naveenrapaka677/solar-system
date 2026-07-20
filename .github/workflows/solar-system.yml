@@ -15,11 +15,11 @@ jobs:
        name: Unit Testing
        strategy:
           matrix:
-              nodejs_verison: [19, 20]
+              nodejs_verison: 20
               os: [ubuntu-latest]
-              exclude:
-                  - nodejs_verison: [20]
-                    os: ubuntu-latest
+              # exclude:
+              #     - nodejs_verison: [20]
+              #       os: ubuntu-latest
        runs-on: ${{ matrix.os }}
        steps:
        - name: checkout repository
@@ -171,6 +171,10 @@ jobs:
         - name: Check Files
           run: |
             cat kubernetes/development/*.yaml
+
+        - name: Create Namespace
+          run: |
+            kubectl create namespace ${{ vars.NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
 
         - name: Create MongoDB Secret
           run: |
