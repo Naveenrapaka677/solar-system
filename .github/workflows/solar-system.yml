@@ -12,7 +12,7 @@ env:
     MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
 jobs:
     unit-testing:
-       name: Unit testing
+       name: Unit Testing
        strategy:
           matrix:
               nodejs_verison: [19, 20]
