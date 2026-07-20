@@ -140,7 +140,7 @@ jobs:
 
     dev-deploy:
       needs: [unit-testing, code-coverage, docker]
-      runs-on: ubuntu-latest
+      runs-on: self-hosted
 
       steps:
         - name: Checkout Repository
