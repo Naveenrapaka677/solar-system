@@ -139,10 +139,12 @@ jobs:
               ghcr.io/naveenrapaka677/solar-system:${{ github.sha }}
 
     dev-deploy:
+      name: Deploy to Development
       needs: docker
+      runs-on: self-hosted
+
       outputs:
         APP_INGRESS_URL: ${{ steps.set-ingress-host-address.outputs.APP_INGRESS_HOST }}
-      runs-on: self-hosted
 
       steps:
         - name: Checkout Repository
@@ -153,11 +155,14 @@ jobs:
             kubectl version
             kubectl config current-context
             kubectl get nodes
+            minikube status
 
-        - name: Save NGINX Controller IP
+        - name: Save Minikube IP
           run: |
-            $ip = kubectl -n ingress-nginx get svc ingress-nginx-controller -o jsonpath="{.status.loadBalancer.ingress[0].ip}"
-            "INGRESS_IP=$ip" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            IP=$(minikube ip)
+            echo "INGRESS_IP=$IP" >> "$GITHUB_ENV"
+            echo "Minikube IP: $IP"
+
         - name: Replace Tokens
           uses: cschleiden/replace-tokens@v1
           with:
@@ -170,28 +175,45 @@ jobs:
             K8S_IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
             INGRESS_IP: ${{ env.INGRESS_IP }}
 
-        - name: Check Files
+        - name: Check Kubernetes Manifests
           run: |
-            get-content kubernetes/development/*.yaml
+          cat kubernetes/development/*.yaml
 
         - name: Create Namespace
           run: |
-            kubectl create namespace ${{ vars.NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
+            kubectl create namespace ${{ vars.NAMESPACE }} \
+            --dry-run=client -o yaml | kubectl apply -f -
 
         - name: Create MongoDB Secret
           run: |
-            kubectl -n ${{ vars.NAMESPACE }} create secret generic mongo-db-secret `
-            --from-literal=MONGO_URI=${{ env.MONGO_URI }} `
-            --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }} `
-            --from-literal=MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }} `
+            kubectl -n ${{ vars.NAMESPACE }} create secret generic mongo-db-secret \
+            --from-literal=MONGO_URI="${{ env.MONGO_URI }}" \
+            --from-literal=MONGO_USERNAME="${{ vars.MONGO_USERNAME }}" \
+            --from-literal=MONGO_PASSWORD="${{ secrets.MONGO_PASSWORD }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-        - name: Set app ingress host URL
+        - name: Deploy Application
+          run: |
+            kubectl apply -f kubernetes/development
+
+        - name: Wait for Deployment
+          run: |
+            kubectl rollout status deployment/solar-system \
+            -n ${{ vars.NAMESPACE }} --timeout=180s
+
+        - name: Verify Resources
+          run: |
+            kubectl get all -n ${{ vars.NAMESPACE }}
+            kubectl get ingress -n ${{ vars.NAMESPACE }}
+
+        - name: Set App Ingress Host
           id: set-ingress-host-address
           run: |
-            $apphost = kubectl -n ${{ vars.NAMESPACE }} get ingress -o jsonpath="{.items[0].spec.rules[0].host}"
-            Write-Host "App Host: $apphost"
-            "APP_INGRESS_HOST=$apphost" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+            APP_HOST=$(kubectl -n ${{ vars.NAMESPACE }} get ingress -o jsonpath='{.items[0].spec.rules[0].host}')
+
+            echo "Application Host: $APP_HOST"
+  
+            echo "APP_INGRESS_HOST=$APP_HOST" >> "$GITHUB_OUTPUT"
 
     Integration-Test:
       name: Dev Integration Testing
@@ -199,11 +221,24 @@ jobs:
       runs-on: self-hosted
 
       steps:
-        - name: Test URL Output
+        - name: Verify Output
+          run: |
+            echo "Ingress URL: ${{ needs.dev-deploy.outputs.APP_INGRESS_URL }}"
+
+        - name: Test Application
           env:
             URL: ${{ needs.dev-deploy.outputs.APP_INGRESS_URL }}
           run: |
-            echo "$URL"
-            echo "-------------------------------"
+            echo "Testing URL: https://$URL/live"
+            echo "--------------------------------"
 
-            curl -k -s "https://$URL/live" | jq -r .status | grep -i live
+            STATUS=$(curl -k -s "https://$URL/live" | jq -r '.status')
+
+            echo "Application Status: $STATUS"
+
+            if [ "$STATUS" != "live" ]; then
+            echo "Application is not live."
+            exit 1
+            fi
+
+            echo "Integration Test Passed."
