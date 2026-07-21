@@ -177,7 +177,7 @@ jobs:
 
         - name: Check Kubernetes Manifests
           run: |
-          cat kubernetes/development/*.yaml
+            cat kubernetes/development/*.yaml
 
         - name: Create Namespace
           run: |
