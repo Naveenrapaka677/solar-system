@@ -216,7 +216,7 @@ jobs:
             echo "APP_INGRESS_HOST=$APP_HOST" >> "$GITHUB_OUTPUT"
 
     Integration-Test:
-      name: Dev Integration Testing
+      name: Dev Integration testing
       needs: dev-deploy
       runs-on:
         - self-hosted
