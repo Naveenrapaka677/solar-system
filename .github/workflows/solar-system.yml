@@ -202,15 +202,8 @@ jobs:
         - name: Test URL Output
           env:
             URL: ${{ needs.dev-deploy.outputs.APP_INGRESS_URL }}
-          shell: pwsh
           run: |
-            Write-Host $env:URL
-            Write-Host "-------------------------------"
+            echo "$URL"
+            echo "-------------------------------"
 
-            $response = Invoke-RestMethod -Uri "http://$env:URL/live" -SkipCertificateCheck
-
-            Write-Host $response.status
-  
-            if ($response.status -ne "live") {
-              throw "Application is not live."
-            }
+            curl -k -s "https://$URL/live" | jq -r .status | grep -i live
