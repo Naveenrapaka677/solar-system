@@ -227,20 +227,23 @@ jobs:
           run: |
             echo "Ingress URL: ${{ needs.dev-deploy.outputs.APP_INGRESS_URL }}"
 
-        - name: Test Application
+        - name: Test URL Output
           env:
             URL: ${{ needs.dev-deploy.outputs.APP_INGRESS_URL }}
           run: |
             echo "Testing URL: https://$URL/live"
-            echo "--------------------------------"
 
-            STATUS=$(curl -k -s "https://$URL/live" | jq -r '.status')
+            RESPONSE=$(curl -k -s "https://$URL/live")
 
-            echo "Application Status: $STATUS"
+            echo "Response: $RESPONSE"
+
+            STATUS=$(echo "$RESPONSE" | jq -r '.status')
+
+            echo "Status: $STATUS"
 
             if [ "$STATUS" != "live" ]; then
-            echo "Application is not live."
-            exit 1
+              echo "Application is not live."
+              exit 1
             fi
 
             echo "Integration Test Passed."
