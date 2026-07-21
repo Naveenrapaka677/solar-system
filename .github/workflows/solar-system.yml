@@ -201,15 +201,15 @@ jobs:
       steps:
         - name: Test URL Output
           env:
-          URL: ${{ needs.dev-deploy.outputs.APP_INGRESS_URL }}
-          run: |
-            Write-Host $env:URL
-            Write-Host "-------------------------------"
+            URL: ${{ needs.dev-deploy.outputs.APP_INGRESS_URL }}
+            run: |
+              Write-Host $env:URL
+              Write-Host "-------------------------------"
 
-            $response = Invoke-RestMethod -Uri "https://$env:URL/live" -SkipCertificateCheck
+              $response = Invoke-RestMethod -Uri "https://$env:URL/live" -SkipCertificateCheck
 
-            Write-Host $response.status
+              Write-Host $response.status
 
-            if ($response.status -ne "live") {
-            throw "Application is not live."
-            }
+              if ($response.status -ne "live") {
+              throw "Application is not live."
+              }
