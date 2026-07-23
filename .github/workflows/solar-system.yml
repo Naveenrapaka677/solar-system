@@ -357,15 +357,17 @@ jobs:
       steps:
         - name: Verify Output
           run: |
-            echo "Ingress URL: ${{ needs.dev-deploy.outputs.APP_INGRESS_URL }}"
+            echo "Ingress URL: ${{ needs.Prod-deploy.outputs.APP_INGRESS_URL }}"
 
-        - name: Test URL Output
+        - name: Test URL output
           env:
-            URL: ${{ needs.dev-deploy.outputs.APP_INGRESS_URL }}
+            URL: ${{ needs.Prod-deploy.outputs.APP_INGRESS_URL }}
           run: |
             echo "Testing URL: https://$URL/live"
 
-            RESPONSE=$(curl -k -s "https://$URL/live")
+            RESPONSE=$(curl -k -s \
+              -H "Host: $URL" \
+               https://127.0.0.1/live)
 
             echo "Response: $RESPONSE"
 
@@ -378,4 +380,4 @@ jobs:
               exit 1
             fi
 
-            echo "Integration Test Passed."     
+            echo "Integration Test Passed."
