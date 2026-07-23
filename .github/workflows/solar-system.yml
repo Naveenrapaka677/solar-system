@@ -251,7 +251,9 @@ jobs:
           run: |
             echo "Testing URL: https://$URL/live"
 
-            RESPONSE=$(curl -k -s "https://$URL/live")
+            RESPONSE=$(curl -k -s \
+              -H "Host: $URL" \
+               https://127.0.0.1/live)
 
             echo "Response: $RESPONSE"
 
