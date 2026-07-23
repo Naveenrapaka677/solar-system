@@ -83,7 +83,7 @@ jobs:
 
     docker:
 
-      name: Containerization
+      name: containerization
       needs: [code-coverage]
       permissions:
           # contents: read 
