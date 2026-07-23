@@ -229,7 +229,7 @@ jobs:
           run: |
             echo "Ingress URL: ${{ needs.dev-deploy.outputs.APP_INGRESS_URL }}"
 
-        - name: Test URL Output
+        - name: Test URL output
           env:
             URL: ${{ needs.dev-deploy.outputs.APP_INGRESS_URL }}
           run: |
