@@ -213,8 +213,24 @@ jobs:
             APP_HOST=$(kubectl -n ${{ vars.NAMESPACE }} get ingress -o jsonpath='{.items[0].spec.rules[0].host}')
 
             echo "Application Host: $APP_HOST"
+            if [ -z "$APP_HOST" ]; then
+              echo "Ingress host is empty!"
+              exit 1
+            fi
   
             echo "APP_INGRESS_HOST=$APP_HOST" >> "$GITHUB_OUTPUT"
+        - name: Debug Ingress Host
+          run: |
+            echo "APP_HOST='$APP_HOST'"
+            kubectl get ingress -n ${{ vars.NAMESPACE }}
+            kubectl get ingress -n ${{ vars.NAMESPACE }} -o yaml
+            echo "APP_INGRESS_HOST=$APP_HOST" >> "$GITHUB_OUTPUT"
+
+        - name: Debug Ingress Host
+          run: |
+            echo "APP_HOST='$APP_HOST'"
+            kubectl get ingress -n ${{ vars.NAMESPACE }}
+            kubectl get ingress -n ${{ vars.NAMESPACE }} -o yaml
 
     Dev-Integration-Test:
       if: contains(github.ref, 'feature/')
