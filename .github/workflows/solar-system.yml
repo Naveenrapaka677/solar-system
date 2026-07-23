@@ -331,7 +331,7 @@ jobs:
     Prod-Integration-Test:
       if: github.ref == 'refs/heads/main'
       name: Prod Integration testing
-      needs: dev-deploy
+      needs: Prod-deploy
       runs-on:
         - self-hosted
         - Linux
