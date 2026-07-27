@@ -222,18 +222,12 @@ jobs:
             fi
   
             echo "APP_INGRESS_HOST=$APP_HOST" >> "$GITHUB_OUTPUT"
-        - name: Debug Ingress Host
-          run: |
-            echo "APP_HOST='$APP_HOST'"
-            kubectl get ingress -n ${{ vars.NAMESPACE }}
-            kubectl get ingress -n ${{ vars.NAMESPACE }} -o yaml
-            echo "APP_INGRESS_HOST=$APP_HOST" >> "$GITHUB_OUTPUT"
 
-        - name: Debug Ingress Host
+        - name: Verify Step Output
           run: |
-            echo "APP_HOST='$APP_HOST'"
-            kubectl get ingress -n ${{ vars.NAMESPACE }}
-            kubectl get ingress -n ${{ vars.NAMESPACE }} -o yaml
+            echo "Step Output = '${{ steps.set-ingress-host-address.outputs.APP_INGRESS_HOST }}'"
+
+        
 
     Dev-Integration-Test:
       if: contains(github.ref, 'feature/')
