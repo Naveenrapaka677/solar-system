@@ -2,6 +2,20 @@ name: Deployment Resuable Workflow
 
 on:
   workflow_call:
+    inputs:
+      mongodb-uri:
+        required: true
+        type: string
+      k8s-manifest-dir:
+        description: directory containing kubernetes manifests files
+        default: kubernetes/
+        required: true
+        type: string
+      environment:
+        description: provide the deployment environment
+        default: dev
+        required: true
+        type: string
     outputs:
       APP_INGRESS_URL:
         description: "Application ingress URL"
@@ -19,7 +33,7 @@ jobs:
       APP_INGRESS_URL: ${{ steps.set-ingress-host-address.outputs.APP_INGRESS_HOST }}
 
     environment:
-      name: dev
+      name: ${{ inputs.environment }}
       url: https://${{ steps.set-ingress-host-address.outputs.APP_INGRESS_HOST }}
 
     steps:
@@ -44,7 +58,7 @@ jobs:
         with:
           tokenPrefix: '${'
           tokenSuffix: '}'
-          files: '["kubernetes/development/*.yaml"]'
+          files: '["${{ inputs.k8s-manifest-dir }}*.yaml"]'
         env:
           NAMESPACE: ${{ vars.NAMESPACE }}
           REPLICAS: ${{ vars.REPLICAS }}
@@ -53,7 +67,7 @@ jobs:
 
       - name: Check Kubernetes Manifests
         run: |
-          cat kubernetes/development/*.yaml
+          cat ${{ inputs.k8s-manifest-dir }}*.yaml
 
       - name: Create Namespace
         run: |
@@ -63,14 +77,14 @@ jobs:
       - name: Create MongoDB Secret
         run: |
           kubectl -n ${{ vars.NAMESPACE }} create secret generic mongo-db-secret \
-          --from-literal=MONGO_URI="${{ env.MONGO_URI }}" \
+          --from-literal=MONGO_URI="${{ inputs.mongodb_uri }}" \
           --from-literal=MONGO_USERNAME="${{ vars.MONGO_USERNAME }}" \
           --from-literal=MONGO_PASSWORD="${{ secrets.MONGO_PASSWORD }}" \
           --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy Application
         run: |
-          kubectl apply -f kubernetes/development
+          kubectl apply -f ${{ inputs.k8s-manifest-dir }}
 
       - name: Wait for Deployment
         run: |
