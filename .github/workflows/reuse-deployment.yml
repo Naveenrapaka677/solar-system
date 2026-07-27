@@ -4,96 +4,97 @@ on:
     workflow_call:
 
 jobs:
-    reuse-deploy:
-      environment:
-        name: dev
-        url: https://${{ steps.set-ingress-host-address.outputs.APP_INGRESS_HOST }}
+  reuse-deploy:
+    runs-on: self-hosted
 
-        outputs:
-          APP_INGRESS_URL: ${{ steps.set-ingress-host-address.outputs.APP_INGRESS_HOST }}
-          runs-on: self-hosted
+    outputs:
+      APP_INGRESS_URL: ${{ steps.set-ingress-host-address.outputs.APP_INGRESS_HOST }}
 
-        steps:
-          - name: Checkout Repository
-            uses: actions/checkout@v4
+    environment:
+      name: dev
+      url: https://${{ steps.set-ingress-host-address.outputs.APP_INGRESS_HOST }}
 
-          - name: Verify Kubernetes
-            run: |
-              kubectl version
-              kubectl config current-context
-              kubectl get nodes
-              minikube status
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-          - name: Save Minikube IP
-            run: |
-              IP=$(minikube ip)
-              echo "INGRESS_IP=$IP" >> "$GITHUB_ENV"
-              echo "Minikube IP: $IP"
+      - name: Verify Kubernetes
+        run: |
+          kubectl version
+          kubectl config current-context
+          kubectl get nodes
+          minikube status
 
-          - name: Replace Tokens
-            uses: cschleiden/replace-tokens@v1
-            with:
-              tokenPrefix: '${'
-              tokenSuffix: '}'
-              files: '["kubernetes/development/*.yaml"]'
-            env:
-              NAMESPACE: ${{ vars.NAMESPACE }}
-              REPLICAS: ${{ vars.REPLICAS }}
-              K8S_IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
-              INGRESS_IP: ${{ env.INGRESS_IP }}
+      - name: Save Minikube IP
+        run: |
+          IP=$(minikube ip)
+          echo "INGRESS_IP=$IP" >> "$GITHUB_ENV"
+          echo "Minikube IP: $IP"
 
-          - name: Check Kubernetes Manifests
-            run: |
-              cat kubernetes/development/*.yaml
+      - name: Replace Tokens
+        uses: cschleiden/replace-tokens@v1
+        with:
+          tokenPrefix: '${'
+          tokenSuffix: '}'
+          files: '["kubernetes/development/*.yaml"]'
+        env:
+          NAMESPACE: ${{ vars.NAMESPACE }}
+          REPLICAS: ${{ vars.REPLICAS }}
+          K8S_IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
+          INGRESS_IP: ${{ env.INGRESS_IP }}
 
-          - name: Create Namespace
-            run: |
-              kubectl create namespace ${{ vars.NAMESPACE }} \
-              --dry-run=client -o yaml | kubectl apply -f -
+      - name: Check Kubernetes Manifests
+        run: |
+        cat kubernetes/development/*.yaml
 
-          - name: Create MongoDB Secret
-            run: |
-              kubectl -n ${{ vars.NAMESPACE }} create secret generic mongo-db-secret \
-              --from-literal=MONGO_URI="${{ env.MONGO_URI }}" \
-              --from-literal=MONGO_USERNAME="${{ vars.MONGO_USERNAME }}" \
-              --from-literal=MONGO_PASSWORD="${{ secrets.MONGO_PASSWORD }}" \
-              --dry-run=client -o yaml | kubectl apply -f -
+      - name: Create Namespace
+        run: |
+          kubectl create namespace ${{ vars.NAMESPACE }} \
+          --dry-run=client -o yaml | kubectl apply -f -
 
-          - name: Deploy Application
-            run: |
-              kubectl apply -f kubernetes/development
+      - name: Create MongoDB Secret
+        run: |
+          kubectl -n ${{ vars.NAMESPACE }} create secret generic mongo-db-secret \
+          --from-literal=MONGO_URI="${{ env.MONGO_URI }}" \
+          --from-literal=MONGO_USERNAME="${{ vars.MONGO_USERNAME }}" \
+          --from-literal=MONGO_PASSWORD="${{ secrets.MONGO_PASSWORD }}" \
+          --dry-run=client -o yaml | kubectl apply -f -
 
-          - name: Wait for Deployment
-            run: |
-              kubectl rollout status deployment/solar-system \
-              -n ${{ vars.NAMESPACE }} --timeout=180s
+      - name: Deploy Application
+        run: |
+          kubectl apply -f kubernetes/development
 
-          - name: Verify Resources
-            run: |
-              kubectl get all -n ${{ vars.NAMESPACE }}
-              kubectl get ingress -n ${{ vars.NAMESPACE }}
+      - name: Wait for Deployment
+        run: |
+          kubectl rollout status deployment/solar-system \
+          -n ${{ vars.NAMESPACE }} --timeout=180s
 
-          - name: Set App Ingress Host
-            id: set-ingress-host-address
-            run: |
-              APP_HOST=$(kubectl -n ${{ vars.NAMESPACE }} get ingress -o jsonpath='{.items[0].spec.rules[0].host}')
+      - name: Verify Resources
+        run: |
+          kubectl get all -n ${{ vars.NAMESPACE }}
+          kubectl get ingress -n ${{ vars.NAMESPACE }}
 
-              echo "Application Host: $APP_HOST"
-              if [ -z "$APP_HOST" ]; then
-                echo "Ingress host is empty!"
-                exit 1
-              fi
+      - name: Set App Ingress Host
+        id: set-ingress-host-address
+        run: |
+          APP_HOST=$(kubectl -n ${{ vars.NAMESPACE }} get ingress -o jsonpath='{.items[0].spec.rules[0].host}')
+
+          echo "Application Host: $APP_HOST"
+            if [ -z "$APP_HOST" ]; then
+             echo "Ingress host is empty!"
+             exit 1
+            fi
   
-              echo "APP_INGRESS_HOST=$APP_HOST" >> "$GITHUB_OUTPUT"
-          - name: Debug Ingress Host
-            run: |
-              echo "APP_HOST='$APP_HOST'"
-              kubectl get ingress -n ${{ vars.NAMESPACE }}
-              kubectl get ingress -n ${{ vars.NAMESPACE }} -o yaml
-              echo "APP_INGRESS_HOST=$APP_HOST" >> "$GITHUB_OUTPUT"
+          echo "APP_INGRESS_HOST=$APP_HOST" >> "$GITHUB_OUTPUT"
+      - name: Debug Ingress Host
+        run: |
+          echo "APP_HOST='$APP_HOST'"
+          kubectl get ingress -n ${{ vars.NAMESPACE }}
+          kubectl get ingress -n ${{ vars.NAMESPACE }} -o yaml
+          echo "APP_INGRESS_HOST=$APP_HOST" >> "$GITHUB_OUTPUT"
 
-          - name: Debug Ingress Host
-            run: |
-              echo "APP_HOST='$APP_HOST'"
-              kubectl get ingress -n ${{ vars.NAMESPACE }}
-              kubectl get ingress -n ${{ vars.NAMESPACE }} -o yaml
+      - name: Debug Ingress Host
+        run: |
+          echo "APP_HOST='$APP_HOST'"
+          kubectl get ingress -n ${{ vars.NAMESPACE }}
+          kubectl get ingress -n ${{ vars.NAMESPACE }} -o yaml
