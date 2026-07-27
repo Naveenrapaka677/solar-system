@@ -91,7 +91,7 @@ jobs:
         - name: download mocha test artifact
           uses: actions/download-artifact@v4
           with:
-            name: mocha-test-result
+            name: mocha-test-results
 
         - name: download code coverage artifact
           uses: actions/download-artifact@v4
