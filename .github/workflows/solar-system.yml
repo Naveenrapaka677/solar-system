@@ -355,11 +355,11 @@ jobs:
         - Linux
 
       steps:
-        - name: Verify Output
+        - name: Verify output
           run: |
             echo "Ingress URL: ${{ needs.Prod-deploy.outputs.APP_INGRESS_URL }}"
 
-        - name: Test URL output
+        - name: Test URL Output
           env:
             URL: ${{ needs.Prod-deploy.outputs.APP_INGRESS_URL }}
           run: |
