@@ -147,7 +147,7 @@ jobs:
     Dev-Integration-Test:
       if: contains(github.ref, 'feature/')
       name: Dev Integration testing
-      needs: dev-deploy
+      needs: reuse-deploy
       runs-on:
         - self-hosted
         - Linux
