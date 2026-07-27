@@ -144,7 +144,7 @@ jobs:
       needs: docker
       uses: ./.github/workflows/reuse-deployment.yml
       secrets: 
-        mongodb-password: ${{ secret.MONGO_PASSWORD }}
+        mongodb-password: ${{ secrets.MONGO_PASSWORD }}
         
 
     Dev-Integration-Test:
@@ -188,7 +188,7 @@ jobs:
       needs: docker
       uses: ./.github/workflows/reuse-deployment.yml
       secrets: 
-        mongodb-password: ${{ secret.MONGO_PASSWORD }}   
+        mongodb-password: ${{ secrets.MONGO_PASSWORD }}   
 
     prod-Integration-Test:
       if: github.ref == 'refs/heads/main'
