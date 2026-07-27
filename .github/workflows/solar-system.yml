@@ -357,11 +357,11 @@ jobs:
       steps:
         - name: Verify output
           run: |
-            echo "Ingress URL: ${{ needs.prod-deploy.outputs.APP_INGRESS_URL }}"
+            echo "Ingress URL: ${{ needs.production-deploy.outputs.APP_INGRESS_URL }}"
 
         - name: Test URL Output
           env:
-            URL: ${{ needs.prod-deploy.outputs.APP_INGRESS_URL }}
+            URL: ${{ needs.production-deploy.outputs.APP_INGRESS_URL }}
           run: |
             echo "Testing URL: https://$URL/live"
 
