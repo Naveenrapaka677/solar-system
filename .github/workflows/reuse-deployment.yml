@@ -89,7 +89,7 @@ jobs:
       - name: Wait for Deployment
         run: |
           kubectl rollout status deployment/solar-system \
-          -n ${{ vars.NAMESPACE }} --timeout=180s
+          -n ${{ vars.NAMESPACE }} --timeout=200s
 
       - name: Verify Resources
         run: |
