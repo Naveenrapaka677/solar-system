@@ -268,7 +268,7 @@ jobs:
 
             echo "Integration Test Passed."
 
-    Prod-deploy:
+    prod-deploy:
       if: github.ref == 'refs/heads/main'
       name: Deploy to production
       needs: docker
@@ -346,10 +346,10 @@ jobs:
   
             echo "APP_INGRESS_HOST=$APP_HOST" >> "$GITHUB_OUTPUT"   
 
-    Prod-Integration-Test:
+    prod-Integration-Test:
       if: github.ref == 'refs/heads/main'
-      name: Prod Integration  testing
-      needs: Prod-deploy
+      name: prod Integration  testing
+      needs: prod-deploy
       runs-on:
         - self-hosted
         - Linux
@@ -357,11 +357,11 @@ jobs:
       steps:
         - name: Verify output
           run: |
-            echo "Ingress URL: ${{ needs.Prod-deploy.outputs.APP_INGRESS_URL }}"
+            echo "Ingress URL: ${{ needs.prod-deploy.outputs.APP_INGRESS_URL }}"
 
         - name: Test URL Output
           env:
-            URL: ${{ needs.Prod-deploy.outputs.APP_INGRESS_URL }}
+            URL: ${{ needs.prod-deploy.outputs.APP_INGRESS_URL }}
           run: |
             echo "Testing URL: https://$URL/live"
 
