@@ -355,7 +355,7 @@ jobs:
         - Linux
 
       steps:
-        - name: Verify Output
+        - name: Verify output
           run: |
             echo "Ingress URL: ${{ needs.Prod-deploy.outputs.APP_INGRESS_URL }}"
 
