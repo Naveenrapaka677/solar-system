@@ -1,7 +1,15 @@
 name: Deployment Resuable Workflow
 
-on: 
-    workflow_call:
+on:
+  workflow_call:
+    outputs:
+      APP_INGRESS_URL:
+        description: "Application ingress URL"
+        value: ${{ jobs.reuse-deploy.outputs.APP_INGRESS_URL }}
+
+    secrets:
+      mongodb-password:
+        required: true
 
 jobs:
   reuse-deploy:
