@@ -146,7 +146,7 @@ jobs:
       secrets: 
         mongodb-password: ${{ secrets.MONGO_PASSWORD }}
       with:
-        mongodb_uri: ${{ vars.MONGO_URI }}
+        mongodb-uri: ${{ vars.MONGO_URI }}
         environment: development
         k8s-manifest-dir: kubernetes/development/
         
