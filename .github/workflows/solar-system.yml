@@ -143,6 +143,9 @@ jobs:
       name: Deploy to Development
       needs: docker
       runs-on: self-hosted
+      environment:
+        name: dev
+        url: https://${{ steps.set-ingress-host-address.outputs.APP_INGRESS_HOST }}
 
       outputs:
         APP_INGRESS_URL: ${{ steps.set-ingress-host-address.outputs.APP_INGRESS_HOST }}
@@ -273,6 +276,9 @@ jobs:
       name: Deploy to production
       needs: docker
       runs-on: self-hosted
+      environment:
+        name: production
+        url: https://${{ steps.set-ingress-host-address.outputs.APP_INGRESS_HOST }}
 
       outputs:
         APP_INGRESS_URL: ${{ steps.set-ingress-host-address.outputs.APP_INGRESS_HOST }}
