@@ -131,7 +131,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_CHANNEL: github-actions-channel 
-          SLACK_COLOR: ${{ job.status }} #specific color like good or ff00ff
+          SLACK_COLOR: "${{ job.status }}" #specific color like good or ff00ff
           SLACK_MESSAGE: |
             Pipeline Status: *${{ job.status }}*
             Triggered by: ${{ github.actor }}
@@ -139,7 +139,6 @@ jobs:
             Branch: ${{ github.ref_name }}
             Commit: ${{ github.sha }}
             Commit Message: ${{ github.event.head_commit.message }}
-          SLACK_TITLE: 'Slack Notification Information'
 
     docker:
 
