@@ -130,9 +130,9 @@ jobs:
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_INCOMING_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_CHANNEL: github-actions-channel 
+          # SLACK_CHANNEL: github-actions-channel 
           SLACK_COLOR: ${{ job.status }} #specific color like good or ff00ff
-          SLACK_MESSAGE: hammer_and_wrench' Triggered by ${{ github.actor }}
+          SLACK_MESSAGE: ":hammer_and_wrench: Triggered by ${{ github.actor }}"
           SLACK_TITLE: 'Slack Notification Information'
 
     docker:
