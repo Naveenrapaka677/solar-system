@@ -134,11 +134,7 @@ jobs:
           SLACK_COLOR: "${{ job.status }}" #specific color like good or ff00ff
           SLACK_MESSAGE: |
             Pipeline Status: *${{ job.status }}*
-            Triggered by: ${{ github.actor }}
-            Repository: ${{ github.repository }}
-            Branch: ${{ github.ref_name }}
-            Commit: ${{ github.sha }}
-            Commit Message: ${{ github.event.head_commit.message }}
+            
 
     docker:
 
