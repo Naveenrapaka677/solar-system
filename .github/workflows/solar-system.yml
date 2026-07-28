@@ -121,7 +121,7 @@ jobs:
     Slack-notification:
       if: always()
       name: Slack Notification Demo
-      needs: [unit-testing, code-coverage, reports-s3]
+      needs: [unit-testing, code-coverage]
       continue-on-error: true
       runs-on: ubuntu-latest
       steps:
@@ -134,7 +134,11 @@ jobs:
           SLACK_COLOR: "${{ job.status }}" #specific color like good or ff00ff
           SLACK_MESSAGE: |
             Pipeline Status: *${{ job.status }}*
-            
+            Triggered by: ${{ github.actor }}
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Commit Message: ${{ github.event.head_commit.message }}
 
     docker:
 
