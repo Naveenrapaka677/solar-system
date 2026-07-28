@@ -118,6 +118,23 @@ jobs:
             SOURCE_DIR: 'reports-${{ github.sha }}'
             DEST_DIR: 'reports-${{ github.sha }}'
 
+    Slack-notification:
+      if: always()
+      name: Slack Notification Demo
+      needs: [unit-testing, code-coverage, reports-s3]
+      continue-on-error: true
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@v4
+      - name: Slack Notification 
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_INCOMING_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_CHANNEL: github-actions-channel 
+          SLACK_COLOR: ${{ job.status }} #specific color like good or ff00ff
+          SLACK_MESSAGE: hammer_and_wrench' Triggered by ${{ github.actor }}
+          SLACK_TITLE: 'Slack Notification Information'
+
     docker:
 
       name: containerization
