@@ -106,7 +106,7 @@ jobs:
             mv test-results.xml reports-${{ github.sha }}/
             ls -ltr reports-${{ github.sha }}/
 
-        - name: upload to AWS S3
+        - name: upload to  AWS S3
           uses: jakejarvis/s3-sync-action@master
           with:
             args: --follow-symlinks --delete
