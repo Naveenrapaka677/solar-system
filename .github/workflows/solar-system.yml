@@ -82,41 +82,41 @@ jobs:
            path: coverage
            retention-days: 5
     
-    reports-s3:
-      needs: [code-coverage, unit-testing]
-      name: AWS S3 - upload reports
-      runs-on: ubuntu-latest
-      continue-on-error: true
-      steps:
-        - name: download mocha test artifact
-          uses: actions/download-artifact@v4
-          with:
-            name: mocha-test-results
+    # reports-s3:
+    #   needs: [code-coverage, unit-testing]
+    #   name: AWS S3 - upload reports
+    #   runs-on: ubuntu-latest
+    #   continue-on-error: true
+    #   steps:
+    #     - name: download mocha test artifact
+    #       uses: actions/download-artifact@v4
+    #       with:
+    #         name: mocha-test-results
 
-        - name: download code coverage artifact
-          uses: actions/download-artifact@v4
-          with:
-            name: code-coverage-result
+    #     - name: download code coverage artifact
+    #       uses: actions/download-artifact@v4
+    #       with:
+    #         name: code-coverage-result
 
-        - name: merge test files
-          run: |
-            ls -ltr 
-            mkdir reports-${{ github.sha }}
-            mv cobertura-coverage.xml reports-${{ github.sha }}/
-            mv test-results.xml reports-${{ github.sha }}/
-            ls -ltr reports-${{ github.sha }}/
+    #     - name: merge test files
+    #       run: |
+    #         ls -ltr 
+    #         mkdir reports-${{ github.sha }}
+    #         mv cobertura-coverage.xml reports-${{ github.sha }}/
+    #         mv test-results.xml reports-${{ github.sha }}/
+    #         ls -ltr reports-${{ github.sha }}/
 
-        - name: upload to  AWS S3
-          uses: jakejarvis/s3-sync-action@master
-          with:
-            args: --follow-symlinks --delete
-          env: 
-            AWS_S3_BUCKET: solar-system-kodek-reports-bucket
-            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            AWS_REGION: 'ap-south-1'
-            SOURCE_DIR: 'reports-${{ github.sha }}'
-            DEST_DIR: 'reports-${{ github.sha }}'
+    #     - name: upload to  AWS S3
+    #       uses: jakejarvis/s3-sync-action@master
+    #       with:
+    #         args: --follow-symlinks --delete
+    #       env: 
+    #         AWS_S3_BUCKET: solar-system-kodek-reports-bucket
+    #         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #         AWS_REGION: 'ap-south-1'
+    #         SOURCE_DIR: 'reports-${{ github.sha }}'
+    #         DEST_DIR: 'reports-${{ github.sha }}'
 
     Slack-notification:
       if: always()
@@ -132,7 +132,13 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_CHANNEL: github-actions-channel 
           SLACK_COLOR: ${{ job.status }} #specific color like good or ff00ff
-          SLACK_MESSAGE: ":hammer_and_wrench: Triggered by ${{ github.actor }}"
+          SLACK_MESSAGE: |
+          🚀 Pipeline Status: *${{ job.status }}*
+          👤 Triggered by: ${{ github.actor }}
+          📦 Repository: ${{ github.repository }}
+          🌿 Branch: ${{ github.ref_name }}
+          📝 Commit: ${{ github.sha }}
+          💬 Commit Message: ${{ github.event.head_commit.message }}
           SLACK_TITLE: 'Slack Notification Information'
 
     docker:
