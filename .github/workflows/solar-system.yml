@@ -30,14 +30,10 @@ jobs:
          with:
            node-version: ${{ matrix.nodejs_verison }}
 
-       - name: cache npm Dependencies
-         uses: actions/cache@v4
+       - name: composite action cache and install NPM Packages
+         uses: ./.github/custom-action/npm-actions
          with:
-           path: ~/.npm
-           key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
-
-       - name: Install Dependencies
-         run: npm install
+           path-of-folder: node modules
 
        - name: Unit Testing
          run: npm test
@@ -49,8 +45,9 @@ jobs:
              path: test-results.xml
 
     code-coverage:
+
        name: code coverage
-       needs: unit-testing
+      #  needs: unit-testing
        runs-on: ubuntu-latest
        steps:
        - name: checkout repository
@@ -61,14 +58,10 @@ jobs:
          with:
             node-version: 18
 
-       - name: cache npm Dependencies
-         uses: actions/cache@v4
+       - name: composite action cache and install NPM Packages
+         uses: ./.github/custom-action/npm-actions
          with:
-           path: ~/.npm
-           key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
-
-       - name: install Dependencies
-         run: npm install
+           path-of-folder: node modules
 
        - name: check code coverage
          continue-on-error: true
@@ -80,6 +73,64 @@ jobs:
            name: code-coverage-result
            path: coverage
            retention-days: 5
+    
+    # reports-s3:
+    #   needs: [code-coverage, unit-testing]
+    #   name: AWS S3 - upload reports
+    #   runs-on: ubuntu-latest
+    #   continue-on-error: true
+    #   steps:
+    #     - name: download mocha test artifact
+    #       uses: actions/download-artifact@v4
+    #       with:
+    #         name: mocha-test-results
+
+    #     - name: download code coverage artifact
+    #       uses: actions/download-artifact@v4
+    #       with:
+    #         name: code-coverage-result
+
+    #     - name: merge test files
+    #       run: |
+    #         ls -ltr 
+    #         mkdir reports-${{ github.sha }}
+    #         mv cobertura-coverage.xml reports-${{ github.sha }}/
+    #         mv test-results.xml reports-${{ github.sha }}/
+    #         ls -ltr reports-${{ github.sha }}/
+
+    #     - name: upload to  AWS S3
+    #       uses: jakejarvis/s3-sync-action@master
+    #       with:
+    #         args: --follow-symlinks --delete
+    #       env: 
+    #         AWS_S3_BUCKET: solar-system-kodek-reports-bucket
+    #         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #         AWS_REGION: 'ap-south-1'
+    #         SOURCE_DIR: 'reports-${{ github.sha }}'
+    #         DEST_DIR: 'reports-${{ github.sha }}'
+
+    # Slack-notification:
+    #   if: always()
+    #   name: Slack Notification Demo
+    #   needs: [unit-testing, code-coverage, reports-s3]
+    #   continue-on-error: true
+    #   runs-on: ubuntu-latest
+    #   steps:
+    #   - uses: actions/checkout@v4
+    #   - name: Slack Notification 
+    #     uses: rtCamp/action-slack-notify@v2
+    #     env:
+    #       SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+    #       SLACK_CHANNEL: github-actions-channel 
+    #       SLACK_COLOR: "${{ job.status }}" #specific color like good or ff00ff
+    #       SLACK_MESSAGE: |
+    #         Pipeline Status: *${{ job.status }}*
+    #         Triggered by: ${{ github.actor }}
+    #         Repository: ${{ github.repository }}
+    #         Branch: ${{ github.ref_name }}
+    #         Commit: ${{ github.sha }}
+    #         Commit Message: ${{ github.event.head_commit.message }}
 
     docker:
 
